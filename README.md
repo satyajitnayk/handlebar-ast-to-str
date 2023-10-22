@@ -7,7 +7,7 @@ This project converts a Handlebars Abstract Syntax Tree (AST) back into its orig
 ## Installation
 
 ```hbs
-npm install hbs-ast-to-template
+npm install hbs-ast-to-str
 ```
 
 ## Usage
@@ -15,7 +15,7 @@ npm install hbs-ast-to-template
 ### JavaScript
 
 ```javascript
-const {convertAstToString} = require('hbs-ast-to-template');
+const {convertAstToString} = require('hbs-ast-to-str');
 const ast = {/* Your Handlebars AST using Handlebars.parse(template_str)*/};
 const template = convertAstToString(ast);
 ```
