@@ -1,4 +1,4 @@
-import { convertASTToTemplateString } from '../src';
+import { convertAstToString } from '../src';
 import Handlebars from 'handlebars';
 
 describe('convertASTToTemplateString', () => {
@@ -184,9 +184,9 @@ describe('convertASTToTemplateString', () => {
 
   for (const template of templates) {
     it(`template: ${template}`, () => {
-      expect(
-        convertASTToTemplateString(Handlebars.parse(template))
-      ).toStrictEqual(template);
+      expect(convertAstToString(Handlebars.parse(template))).toStrictEqual(
+        template
+      );
     });
   }
 });

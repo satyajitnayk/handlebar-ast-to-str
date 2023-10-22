@@ -6,8 +6,8 @@ import Handlebars from 'handlebars';
  * @param node
  */
 
-export function convertASTToTemplateString(node: hbs.AST.Node | null): string {
-  const fn = convertASTToTemplateString;
+export function convertAstToString(node: hbs.AST.Node | null): string {
+  const fn = convertAstToString;
   if (!node) return '';
 
   let output = '';
