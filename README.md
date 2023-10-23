@@ -1,4 +1,4 @@
-# Handlebars AST to Template String
+# Handlebars AST to Template String ![hbs-ast-to-str](https://img.shields.io/npm/v/hbs-ast-to-str?label=hbs-ast-to-str)
 
 ## Description
 
@@ -15,8 +15,10 @@ npm install hbs-ast-to-str
 ### JavaScript
 
 ```javascript
-const {convertAstToString} = require('hbs-ast-to-str');
-const ast = {/* Your Handlebars AST using Handlebars.parse(template_str)*/};
+const { convertAstToString } = require('hbs-ast-to-str');
+const ast = {
+  /* Your Handlebars AST using Handlebars.parse(template_str)*/
+};
 const template = convertAstToString(ast);
 ```
 
