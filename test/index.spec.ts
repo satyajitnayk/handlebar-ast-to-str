@@ -1,5 +1,6 @@
 import { convertAstToString } from '../src';
 import Handlebars from 'handlebars';
+import { postprocess, preprocess } from './index.spec-utils';
 
 describe('convertASTToTemplateString', () => {
   const templates = [
@@ -156,15 +157,15 @@ describe('convertASTToTemplateString', () => {
 
     "{{lookup (filter items (rating gt 3)) 'length'}}",
 
-    // "{{lookup (filter employees (((salary lt 3000) or (salary gte 5000)) and (tag contains 'world'))) 'length'}}",
+    "{{lookup (filter employees (((salary lt 3000) or (salary gte 5000)) and (tag contains 'world'))) 'length'}}",
 
-    // "{{lookup (filter employees ((@first eq 1) or (@last neq 4) or (@index in '1,4,5'))) 'length'}}",
+    "{{lookup (filter employees ((@first eq 1) or (@last neq 4) or (@index in '1,4,5'))) 'length'}}",
 
     "{{lookup (filter employees (empId eq (pad ../number 3 pad_with='#'))) 'length'}}",
 
-    // `{{#each (filter employees ((name eq 'john doe') and (dept in 'HR, Finance') and (salary gt 50000) or (status eq 'active')))}}
-    // {{tags}} | {{pension.amount}}
-    // {{/each}}`,
+    `{{#each (filter employees ((name eq 'john doe') and (dept in 'HR, Finance') and (salary gt 50000) or (status eq 'active')))}}
+    {{tags}} | {{pension.amount}}
+    {{/each}}`,
 
     '{{#each (group_by input.items)}}...{{/each}}',
 
@@ -174,19 +175,19 @@ describe('convertASTToTemplateString', () => {
 
     `{{#each (group_by input.employees lookup='role.previous.0.code')}}...{{/each}}`,
 
-    // `{{#each (group_by items lookup='category')}}
-    // {{key}}
-    // {{#each items}}
-    // {{name}} {{role.code}}
-    // {{/each}}
-    // {{/each}}`,
+    `{{#each (group_by items lookup='category')}}
+    {{key}}
+    {{#each items}}
+    {{name}} {{role.code}}
+    {{/each}}
+    {{/each}}`,
   ];
 
   for (const template of templates) {
     it(`template: ${template}`, () => {
-      expect(convertAstToString(Handlebars.parse(template))).toStrictEqual(
-        template
-      );
+      expect(
+        postprocess(convertAstToString(Handlebars.parse(preprocess(template))))
+      ).toStrictEqual(template);
     });
   }
 });
