@@ -16,6 +16,10 @@
   },
   "author": "satyajit nayak",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/satyajitnayk/handlebar-ast-to-str"
+  },
   "dependencies": {
     "handlebars": "^4.7.8"
   },
