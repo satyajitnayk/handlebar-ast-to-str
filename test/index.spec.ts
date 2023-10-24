@@ -1,6 +1,6 @@
-import { convertAstToString } from '../src';
+import {convertAstToString} from '../src';
 import Handlebars from 'handlebars';
-import { postprocess, preprocess } from './index.spec-utils';
+import {postprocess, preprocess} from './index.spec-utils';
 
 describe('convertASTToTemplateString', () => {
   const templates = [
@@ -10,9 +10,9 @@ describe('convertASTToTemplateString', () => {
     // Simple Variables
     'Hello, {{name}}!',
 
-    // token with ne line
+    // token with new line
     `Hello {{name}}!
-    How are you?`,
+      How are you?`,
 
     // Nested Variables
     '{{person.name}} is {{person.age}} years old.',
@@ -105,7 +105,14 @@ describe('convertASTToTemplateString', () => {
     '{{concat var1 var2}}',
 
     // Long block with nested conditions and each
-    '{{#each items}}{{#if isActive}}Active: {{name}}{{else}}{{#if isInactive}}Inactive: {{name}}{{/if}}{{/if}}{{/each}}',
+    `{{#each items}}
+      {{#if isActive}}
+      Active: {{name}}
+      {{else}}
+      {{#if isInactive}}Inactive: {{name}}
+      {{/if}}
+      {{/if}}
+      {{/each}}`,
 
     // Multiple sub-expressions
     '{{helper1 (helper2 (helper3 param))}}',
@@ -132,8 +139,8 @@ describe('convertASTToTemplateString', () => {
     '{{#each (filter (filter items (id gt 123)) (rating gte 4))}}{{id}}|{{/each}}',
 
     `{{#each (filter (sort (filter (sort items) (name eq 'oranges'))) (x gt y))}}
-    {{id}} | {{name}} | {{price}}
-    {{/each}}`,
+      {{id}} | {{name}} | {{price}}
+      {{/each}}`,
 
     '{{#each (filter items (this gt 0))}}...{{/each}}',
 
@@ -164,8 +171,8 @@ describe('convertASTToTemplateString', () => {
     "{{lookup (filter employees (empId eq (pad ../number 3 pad_with='#'))) 'length'}}",
 
     `{{#each (filter employees ((name eq 'john doe') and (dept in 'HR, Finance') and (salary gt 50000) or (status eq 'active')))}}
-    {{tags}} | {{pension.amount}}
-    {{/each}}`,
+      {{tags}} | {{pension.amount}}
+      {{/each}}`,
 
     '{{#each (group_by input.items)}}...{{/each}}',
 
@@ -176,10 +183,219 @@ describe('convertASTToTemplateString', () => {
     `{{#each (group_by input.employees lookup='role.previous.0.code')}}...{{/each}}`,
 
     `{{#each (group_by items lookup='category')}}
-    {{key}}
-    {{#each items}}
-    {{name}} {{role.code}}
-    {{/each}}
+      {{key}}
+      {{#each items}}
+      {{name}} {{role.code}}
+      {{/each}}
+      {{/each}}`,
+
+    `{{variable1}}
+    {{variable2}}`,
+    `Hello, {{name}}! Your account balance is: {{balance}}`,
+    `{{#if condition}}
+      This content is displayed when the condition is true.
+    {{else}}
+      This content is displayed when the condition is false.
+    {{/if}}`,
+    `{{#each items}}
+      - {{this}}
+    {{/each}}`,
+    `{{#with data}}
+      {{name}} lives in {{location}}.
+    {{/with}}`,
+    `The result is {{#if result}}{{result}}{{else}}undefined{{/if}}.`,
+    `Today's weather: {{#if rainy}}Rainy{{else if sunny}}Sunny{{else}}Cloudy{{/if}}.`,
+    `Today's weather: {{#if rainy}}Rainy{{else unless sunny}}Sunny{{else}}Cloudy{{/if}}.`,
+    `Today's weather: {{#if rainy}}Rainy{{else unless sunny}}Sunny{{else if sunny}}Sunny{{else}}Cloudy{{/if}}.`,
+    `Today's weather: {{#unless rainy}}Rainy{{else}}Cloudy{{/unless}}.`,
+    `Today's weather: {{#unless rainy}}Sunny{{else if sunny}}Rainy{{else}}Cloudy{{/unless}}.`,
+    `Today's weather: {{#unless rainy}}Rainy{{else unless sunny}}Sunny{{else if sunny}}Sunny{{else}}Cloudy{{/unless}}.`,
+    `{{#unless loggedIn}}
+      Please log in to access this feature.
+    {{/unless}}`,
+    `{{#each users}}
+      User: {{name}}, Email: {{email}}
+    {{/each}}`,
+    `{{#if isAdmin}}
+      Welcome, Admin!
+    {{else}}
+      Welcome, Guest!
+    {{/if}}`,
+    `{{#with person}}
+      {{name}} is {{age}} years old.
+    {{/with}}`,
+    `{{#each items}}
+      - {{name}}: {{price}}
+    {{/each}}`,
+    `{{#if stock}}
+      Item is in stock.
+    {{else}}
+      Item is out of stock.
+    {{/if}}`,
+    `Total: {{total}}`,
+    `{{#unless condition}}
+      This content is displayed when the condition is false.
+    {{/unless}}`,
+    `Welcome, {{#if user}} {{user}} {{else}} Guest {{/if}}!`,
+    `{{#each items}}
+      {{@index}}. {{this}}
+    {{/each}}`,
+    `{{#unless active}}
+      This account is currently inactive.
+    {{/unless}}`,
+    `{{#if (gt count 0)}}
+      There are items in the cart.
+    {{else}}
+      The cart is empty.
+    {{/if}}`,
+    `{{#with contact}}
+      Name: {{name}}, Email: {{email}}
+    {{/with}}`,
+    `{{#if hasPermission}}
+      You have permission to access this feature.
+    {{else}}
+      Access denied.
+    {{/if}}`,
+    `{{#each products}}
+      Product: {{name}}, Price: {{price}}
+    {{/each}}`,
+    `{{#if (or condition1 condition2)}}
+      This content is displayed when either condition1 or condition2 is true.
+    {{else}}
+      Neither condition is true.
+    {{/if}}`,
+    `{{#each items}}
+      - {{name}}: {{#if inStock}}In Stock{{else}}Out of Stock{{/if}}
+    {{/each}}`,
+    `{{#with user}}
+      Name: {{name}}, Age: {{age}}
+    {{/with}}`,
+    `The result is {{#if showPrice}}{{price}}{{else}}Not available{{/if}}.`,
+    `{{#each orders}}
+      Order Number: {{orderNumber}}, Total: {{total}}
+    {{/each}}`,
+    `{{#unless authenticated}}
+      Please log in to view this content.
+    {{/unless}}`,
+    `{{#if (and condition1 condition2)}}
+      This content is displayed when both condition1 and condition2 are true.
+    {{else}}
+      At least one condition is false.
+    {{/if}}`,
+    `{{#each items}}
+      - {{name}}: {{#if (eq stock 0)}}Out of Stock{{else}}In Stock{{/if}}
+    {{/each}}`,
+    `{{#with person}}
+      Name: {{name}}, Occupation: {{occupation}}
+    {{/with}}`,
+    `{{#if (neq status 'active')}}
+      Account is not active.
+    {{else}}
+      Account is active.
+    {{/if}}`,
+    `{{#each messages}}
+      Message from {{sender}}: {{text}}
+    {{/each}}`,
+    `{{#unless (contains roles 'admin')}}
+      You do not have admin privileges.
+    {{/unless}}`,
+    `{{#if (lt count 10)}}
+      There are fewer than 10 items.
+    {{else}}
+      There are 10 or more items.
+    {{/if}}`,
+    `{{#each reviews}}
+      Review by {{author}}: {{content}}
+    {{/each}}`,
+    `{{#each messages}}
+      Message from {{sender}}: {{text}}
+    {{/each}}`,
+    `{{#unless (startsWith name 'Mr.')}}
+      Name does not start with "Mr."
+    {{/unless}}`,
+    `{{#with product}}
+      Product: {{name}}, Category: {{category}}
+    {{/with}}`,
+    `{{#if (or (equals color 'red') (equals color 'blue'))}}
+      The color is either red or blue.
+    {{else}}
+      The color is not red or blue.
+    {{/if}}`,
+    `{{#each messages}}
+      Message from {{sender}}: {{text}}
+    {{/each}}`,
+    `{{#if (or (equals age 18) (equals age 21))}}
+      You are either 18 or 21 years old.
+    {{else}}
+      You are neither 18 nor 21 years old.
+    {{/if}}`,
+    `{{#with person}}
+      Name: {{name}}, Occupation: {{occupation}}
+    {{/with}}`,
+    `{{#if (gteq score 90)}}
+      You scored 90 or higher.
+    {{else}}
+      Your score is less than 90.
+    {{/if}}`,
+    `{{#each items}}
+      - {{name}}: {{#if (lteq quantity 0)}}Out of Stock{{else}}In Stock{{/if}}
+    {{/each}}`,
+    `{{#if (contains fruit 'apple')}}
+      The fruit contains an apple.
+    {{else}}
+      The fruit does not contain an apple.
+    {{/if}}`,
+    `{{#each reviews}}
+      Review by {{author}}: {{#if (gteq rating 4)}}Highly recommended!{{else}}Needs improvement.{{/if}}
+    {{/each}}`,
+    `{{#with product}}
+      Product: {{name}}, Price: {{price}}
+    {{/with}}`,
+    `{{#if (neq status 'inactive')}}
+      Account is active.
+    {{else}}
+      Account is inactive.
+    {{/if}}`,
+    `{{#each users}}
+      User: {{name}}, Email: {{email}}
+    {{/each}}`,
+    `{{#each orders}}
+      Order Number: {{orderNumber}}, Total: {{total}}
+    {{/each}}`,
+    `{{#if (lt count 10)}}
+      There are fewer than 10 items.
+    {{else}}
+      There are 10 or more items.
+    {{/if}}`,
+    `{{#each reviews}}
+      Review by {{author}}: {{content}}
+    {{/each}}`,
+    `{{#if (endsWith email 'example.com')}}
+      This is an example email address.
+    {{else}}
+      This is not an example email address.
+    {{/if}}`,
+    `{{#with product}}
+      Product: {{name}}, Category: {{category}}
+    {{/with}}`,
+    `{{#each messages}}
+      Message from {{sender}}: {{text}}
+    {{/each}}`,
+    `{{#if (or (equals age 18) (equals age 21))}}
+      You are either 18 or 21 years old.
+    {{else}}
+      You are neither 18 nor 21 years old.
+    {{/if}}`,
+    `{{#with person}}
+      Name: {{name}}, Occupation: {{occupation}}
+    {{/with}}`,
+    `{{#if (gteq score 90)}}
+      You scored 90 or higher.
+    {{else}}
+      Your score is less than 90.
+    {{/if}}`,
+    `{{#each items}}
+      - {{name}}: {{#if (lteq quantity 0)}}Out of Stock{{else}}In Stock{{/if}}
     {{/each}}`,
   ];
 

@@ -26,7 +26,10 @@ export function convertAstToString(node: hbs.AST.Node | null): string {
       break;
 
     case 'BlockStatement':
-      const blockParams = (node as hbs.AST.BlockStatement).params
+      const blockNode = node as hbs.AST.BlockStatement;
+      const blockPath = blockNode.path.original;
+      const blockProgram = fn(blockNode.program);
+      const blockParams = blockNode.params
         .map(fn)
         .join(' ');
 
@@ -36,18 +39,31 @@ export function convertAstToString(node: hbs.AST.Node | null): string {
         ?.map((param) => param)
         .join(' ');
 
-      const blockProgram = fn((node as hbs.AST.BlockStatement).program);
-      const inverseProgram = (node as hbs.AST.BlockStatement).inverse
-        ? `{{else}}${fn((node as hbs.AST.BlockStatement).inverse)}`
-        : '';
+      let inverseProgram = '';
+      let nextInverse: hbs.AST.Program | null = blockNode.inverse;
 
-      output = `{{#${(node as hbs.AST.BlockStatement).path.original}${
+      while (nextInverse) {
+        if (nextInverse.body[0]?.type === 'BlockStatement') {
+          const nextBlock = nextInverse.body[0] as hbs.AST.BlockStatement;
+          const nextBlockPath = nextBlock.path.original;
+
+          inverseProgram += `{{else ${nextBlockPath} ${nextBlock.params.map(fn).join(' ')}}}${fn(nextBlock.program)}`;
+          nextInverse = nextBlock.inverse;
+        } else {
+          inverseProgram += `{{else}}${fn(nextInverse)}`;
+          nextInverse = null;
+        }
+      }
+
+
+      output = `{{#${blockPath}${
         blockParams ? ' ' + blockParams : ''
       }${
         blockParamsString ? ' as |' + blockParamsString + '|' : ''
       }}}${blockProgram}${inverseProgram}{{/${
-        (node as hbs.AST.BlockStatement).path.original
+        blockPath
       }}}`;
+
       break;
 
     case 'MustacheStatement':
@@ -82,10 +98,11 @@ export function convertAstToString(node: hbs.AST.Node | null): string {
       break;
 
     case 'SubExpression':
-      const subParams = (node as hbs.AST.SubExpression).params
+      const subExpNode = node as hbs.AST.SubExpression;
+      const subParams = subExpNode.params
         .map(fn)
         .join(' ');
-      const hashPairs = ((node as hbs.AST.SubExpression).hash?.pairs ?? [])
+      const hashPairs = (subExpNode.hash?.pairs ?? [])
         .map((hashPair: any) => {
           return `${hashPair.key}='${hashPair.value.value}'`;
         })
@@ -93,7 +110,7 @@ export function convertAstToString(node: hbs.AST.Node | null): string {
 
       const allArgs = [subParams, hashPairs].filter(Boolean).join(' ');
 
-      output = `(${(node as hbs.AST.SubExpression).path.original}${
+      output = `(${subExpNode.path.original}${
         allArgs ? ' ' + allArgs : ''
       })`;
       break;
