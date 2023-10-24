@@ -1,4 +1,4 @@
-# Handlebars AST to Template String ![hbs-ast-to-str](https://img.shields.io/npm/v/hbs-ast-to-str?label=hbs-ast-to-str)
+# Handlebars AST to Template String ![hbs-ast-to-str](https://img.shields.io/npm/v/hbs-ast-to-str?label=hbs-ast-to-str) [![Project Icon](./handlebars-ast-to-str-logo.png)](https://github.com/satyajitnayk/handlebar-ast-to-str)
 
 ## Description
 
