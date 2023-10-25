@@ -56,6 +56,7 @@ describe('convertASTToTemplateString - with out any modification options', () =>
 
     // Paths with Special Characters - not working
     `{{[@@#*&%$]}}`,
+    `{{[! " # % & ' ( ) * + , . / ; < = > @ ^ \` { | } ~]}}`,
 
     // Block Params
     `{{#each items as |item index|}} {{item}} {{index}} {{/each}}`,
@@ -445,6 +446,11 @@ describe('convertASTToTemplateString - with out any modification options', () =>
     `{{#each (filter undefined)}}...{{/each}}`,
     `{{join employees '/' lookup='name.first'}}`,
     `{{format_date "01-12-2022" format="MM/DD/YY" language=language}}`,
+    `{{#each (sort items lookup='undefined')}}...{{/each}}`,
+    `{{#each (sort items lookup='null')}}...{{/each}}`,
+    `{{#each (sort items lookup=null)}}...{{/each}}`,
+    `{{#each (sort items lookup=undefined)}}...{{/each}}`,
+
   ];
 
   for (const template of templates) {
