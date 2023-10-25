@@ -1,8 +1,9 @@
 import {convertAstToString} from '../src';
 import Handlebars from 'handlebars';
-import {postprocess, preprocess} from './index.spec-utils';
+import {postprocess, preprocess, formatNumberSuffix} from './index.spec-utils';
+import {HbsNodeTypes} from "../src/constants";
 
-describe('convertASTToTemplateString', () => {
+describe('convertASTToTemplateString - with out any modification options', () => {
   const templates = [
     // Plain Text
     `Hello,"World!`,
@@ -397,6 +398,18 @@ describe('convertASTToTemplateString', () => {
     `{{#each items}}
       - {{name}}: {{#if (lteq quantity 0)}}Out of Stock{{else}}In Stock{{/if}}
     {{/each}}`,
+    `{{#each (filter (filter items (id gt 123)) (rating gte 4))}}{{id}}|{{/each}}`,
+    `{{#each (filter (filter (sort items) (name eq 'oranges')) (x gt y))}}{{/each}}`,
+    `{{#each (filter (sort (filter (sort items) (name eq 'oranges'))) (x gt y))}}{{/each}}`,
+    `{{#each (filter (filter (filter items (id gt 123)) (rating gte 4)) (color eq 'red'))}}{{id}}|{{/each}}`,
+    `{{#each (filter (filter (filter (sort items) (id gt 123)) (rating gte 4)) (color eq 'red'))}}{{id}}|{{/each}}`,
+    `{{#each (filter (filter (sort (filter (sort items) (id gt 123))) (rating gte 4)) (color eq 'red'))}}{{id}}|{{/each}}`,
+    `{{#each (sort (filter (filter (sort (filter (sort items) (id gt 123))) (rating gte 4)) (color eq 'red')))}}{{id}}|{{/each}}`,
+    `{{#each (filter (filter (filter (filter items (id gt 123)) (rating gte 4)) (color eq 'red')) (price lte 500))}}{{id}}|{{/each}}`,
+    `{{#each (filter (filter (filter (filter (sort items) (id gt 123)) (rating gte 4)) (color eq 'red')) (price lte 500))}}{{id}}|{{/each}}`,
+    `{{#each (sort (filter items (id gt 123)))}}{{id}}|{{/each}}`,
+    `{{#each (sort (sort (filter items (id gt 123))))}}{{id}}|{{/each}}`,
+    `{{#each (sort (filter (sort (filter items (price lte 500))) (id gt 123)))}}{{id}}|{{/each}}`
   ];
 
   for (const template of templates) {
@@ -404,6 +417,78 @@ describe('convertASTToTemplateString', () => {
       expect(
         postprocess(convertAstToString(Handlebars.parse(preprocess(template))))
       ).toStrictEqual(template);
+    });
+  }
+});
+
+describe('convertASTToTemplateString - with modification options', () => {
+  const templates = [
+    {
+      input: `{{#each (filter (filter items (id gt 123)) (rating gte 4))}}{{id}}|{{/each}}`,
+      output: `{{#each (filter (filter items '(id gt 123)') '(rating gte 4)')}}{{id}}|{{/each}}`
+    },
+    {
+      input: `{{#each (filter (filter (sort items) (name eq 'oranges')) (x gt y))}}{{/each}}`,
+      output: `{{#each (filter (filter (sort items) '(name eq 'oranges')') '(x gt y)')}}{{/each}}`
+    },
+    {
+      input: `{{#each (filter (sort (filter (sort items) (name eq 'oranges'))) (x gt y))}}{{/each}}`,
+      output: `{{#each (filter (sort (filter (sort items) '(name eq 'oranges')')) '(x gt y)')}}{{/each}}`
+    },
+    {
+      input: `{{#each (filter (filter (filter items (id gt 123)) (rating gte 4)) (color eq 'red'))}}{{id}}|{{/each}}`,
+      output: `{{#each (filter (filter (filter items '(id gt 123)') '(rating gte 4)') '(color eq 'red')')}}{{id}}|{{/each}}`
+    },
+    {
+      input: `{{#each (filter (filter (filter (sort items) (id gt 123)) (rating gte 4)) (color eq 'red'))}}{{id}}|{{/each}}`,
+      output: `{{#each (filter (filter (filter (sort items) '(id gt 123)') '(rating gte 4)') '(color eq 'red')')}}{{id}}|{{/each}}`
+    },
+    {
+      input: `{{#each (filter (filter (sort (filter (sort items) (id gt 123))) (rating gte 4)) (color eq 'red'))}}{{id}}|{{/each}}`,
+      output: `{{#each (filter (filter (sort (filter (sort items) '(id gt 123)')) '(rating gte 4)') '(color eq 'red')')}}{{id}}|{{/each}}`
+    },
+    {
+      input: `{{#each (sort (filter (filter (sort (filter (sort items) (id gt 123))) (rating gte 4)) (color eq 'red')))}}{{id}}|{{/each}}`,
+      output: `{{#each (sort (filter (filter (sort (filter (sort items) '(id gt 123)')) '(rating gte 4)') '(color eq 'red')'))}}{{id}}|{{/each}}`
+    },
+    {
+      input: `{{#each (filter (filter (filter (filter items (id gt 123)) (rating gte 4)) (color eq 'red')) (price lte 500))}}{{id}}|{{/each}}`,
+      output: `{{#each (filter (filter (filter (filter items '(id gt 123)') '(rating gte 4)') '(color eq 'red')') '(price lte 500)')}}{{id}}|{{/each}}`
+    },
+    {
+      input: `{{#each (filter (filter (filter (filter (sort items) (id gt 123)) (rating gte 4)) (color eq 'red')) (price lte 500))}}{{id}}|{{/each}}`,
+      output: `{{#each (filter (filter (filter (filter (sort items) '(id gt 123)') '(rating gte 4)') '(color eq 'red')') '(price lte 500)')}}{{id}}|{{/each}}`
+    },
+    {
+      input: `{{#each (sort (filter items (id gt 123)))}}{{id}}|{{/each}}`,
+      output: `{{#each (sort (filter items '(id gt 123)'))}}{{id}}|{{/each}}`
+    },
+    {
+      input: `{{#each (sort (sort (filter items (id gt 123))))}}{{id}}|{{/each}}`,
+      output: `{{#each (sort (sort (filter items '(id gt 123)')))}}{{id}}|{{/each}}`
+    },
+    {
+      input: `{{#each (sort (filter (sort (filter items (price lte 500))) (id gt 123)))}}{{id}}|{{/each}}`,
+      output: `{{#each (sort (filter (sort (filter items '(price lte 500)')) '(id gt 123)'))}}{{id}}|{{/each}}`
+    },
+  ];
+  const options = {
+    helper: 'filter',
+    nodeType: HbsNodeTypes.SubExpression,
+    paramIndex: 2,
+    modifiers: [(d: string) => `'${d}'`]
+  };
+
+  for (const template of templates) {
+    it(`template: ${template.input} - modify ${formatNumberSuffix(options.paramIndex)} param of ${options.helper} helper`, () => {
+      expect(
+        postprocess(
+          convertAstToString(
+            Handlebars.parse(preprocess(template.input)),
+            options
+          )
+        )
+      ).toStrictEqual(template.output);
     });
   }
 });
