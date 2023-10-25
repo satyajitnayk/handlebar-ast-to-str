@@ -12,11 +12,9 @@ npm install hbs-ast-to-str
 
 ## Usage
 
-### JavaScript
+with out any modification options
 
-- with out any modification options
-
-```javascript
+```ts
 const { convertAstToString } = require('hbs-ast-to-str');
 const ast = {
 	/* Your Handlebars AST using Handlebars.parse(template_str)*/
@@ -24,14 +22,17 @@ const ast = {
 const template = convertAstToString(ast);
 ```
 
-```javascript
+with modification options
+
+```ts
 const { convertAstToString } = require('hbs-ast-to-str');
+
 const ast = {
 	/* Your Handlebars AST using Handlebars.parse(template_str)*/
 };
-const options = {
+const options: ModificationOptions = {
 	helper: 'filter',
-	nodeType: HbsNodeTypes.SubExpression,
+	paramType: HbsNodeTypes.SubExpression,
 	paramIndex: 2,
 	modifiers: [(d: string) => `'${d}'`],
 };
@@ -50,7 +51,7 @@ The `ModificationOptions` interface is used to define a set of options for makin
 
 - `helper`: A string that specifies the name of the helper function. This property is optional and can be used to associate a modification with a particular helper.
 
-- `nodeType`: An enumeration that represents the type of Handlebars.js node that you want to modify. You can use `HbsNodeType` to specify the node type.
+- `paramType`: An enumeration that represents the type of param that you want to modify. You can use `HbsNodeType` to specify the node type.
 
 - `paramIndex`: An integer that specifies the index of the parameter you want to modify. This is useful when dealing with helper parameters.
 
@@ -60,16 +61,17 @@ The `ModificationOptions` interface is used to define a set of options for makin
 
 Here's an example of how to use the `ModificationOptions` interface in TypeScript:
 
-```typescript
-const options = {
+```ts
+const options: ModificationOptions = {
 	helper: 'customHelper',
-	nodeType: HbsNodeType.Block,
+	paramType: HbsNodeType.Block,
 	paramIndex: 0,
 	modifiers: [
 		(parameterValue) => {
 			// Implement your modification logic here.
 			// Modify the 'parameterValue' as needed.
 		},
+		...
 	],
 };
 ```

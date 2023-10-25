@@ -1,4 +1,4 @@
-import {HbsNodeType} from "./constants";
+import { HbsNodeType } from './constants';
 
 /**
  * Interface for specifying modification options.
@@ -10,11 +10,9 @@ import {HbsNodeType} from "./constants";
  */
 
 export interface ModificationOptions {
-  helper?: string;
-  // isParam?: boolean;
-  // isHash?: boolean;
-  nodeType?: HbsNodeType;
-  paramIndex?: number;
-  // hashNo?: number;
-  modifiers?: Function[];
+	helper?: string;
+	paramType?: HbsNodeType;
+	paramIndex?: number;
+	// hashIndex?: number;
+	modifiers?: Function[];
 }
