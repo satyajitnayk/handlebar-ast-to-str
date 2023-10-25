@@ -35,7 +35,15 @@ export function convertAstToString(
       const blockPath = blockNode.path.original;
       const blockProgram = fn(blockNode.program, options);
       const blockParams = blockNode.params
-        .map(d => fn(d, options))
+        .map(d => {
+          if (d.type === HbsNodeTypes.UndefinedLiteral) {
+            return 'undefined';
+          } else if (d.type === HbsNodeTypes.NullLiteral) {
+            return 'null';
+          }
+          return fn(d, options);
+        })
+        // .map(d => d ? fn(d, options) : 'undefined')
         .join(' ');
 
       const blockParamsString = (
@@ -74,7 +82,28 @@ export function convertAstToString(
       const mustacheNode = node as hbs.AST.MustacheStatement;
       const openingBraces = mustacheNode.escaped ? '{{' : '{{{';
       const closingBraces = mustacheNode.escaped ? '}}' : '}}}';
-      const mustacheParams = mustacheNode.params.map(d => fn(d, options)).join(' ');
+      const mustacheParams = mustacheNode.params.map(d => {
+        if (d.type === HbsNodeTypes.UndefinedLiteral) {
+          return 'undefined';
+        } else if (d.type === HbsNodeTypes.NullLiteral) {
+          return 'null';
+        }
+        return fn(d, options)
+      }).join(' ');
+      // Handle hash pairs
+      const MustacheHashPairs = mustacheNode.hash?.pairs?.map((pair) => {
+        let hashValue = '';
+        if (pair.value.type === HbsNodeTypes.UndefinedLiteral) {
+          hashValue = 'undefined';
+        } else if (pair.value.type === HbsNodeTypes.NullLiteral) {
+          hashValue = 'null';
+        } else {
+          hashValue = fn(pair.value, options);
+        }
+        return `${pair.key}=${hashValue}`;
+      }).join(' ');
+
+      const allMustacheArgs = [mustacheParams, MustacheHashPairs].filter(Boolean).join(' ');
 
       // @ts-ignore
       let originalPath = mustacheNode.path.original;
@@ -88,7 +117,7 @@ export function convertAstToString(
         originalPath = `[${originalPath}]`;
       }
       output = `${openingBraces}${originalPath}${
-        mustacheParams ? ' ' + mustacheParams : ''
+        allMustacheArgs ? ' ' + allMustacheArgs : ''
       }${closingBraces}`;
       break;
 
@@ -105,6 +134,13 @@ export function convertAstToString(
       const subExpNode = node as hbs.AST.SubExpression;
       const subParams = subExpNode.params
         .map((param, index) => {
+
+          if (param.type === HbsNodeTypes.UndefinedLiteral) {
+            return 'undefined';
+          } else if (param.type === HbsNodeTypes.NullLiteral) {
+            return 'null';
+          }
+
           if (
             options?.nodeType == HbsNodeTypes.SubExpression
             && options.helper === subExpNode.path.original

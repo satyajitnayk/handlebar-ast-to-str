@@ -10,7 +10,9 @@ export const HbsNodeTypes = {
   PartialBlockStatement: 'PartialBlockStatement',
   StringLiteral: 'StringLiteral',
   NumberLiteral: 'NumberLiteral',
-  BooleanLiteral: 'BooleanLiteral'
+  BooleanLiteral: 'BooleanLiteral',
+  UndefinedLiteral: 'UndefinedLiteral',
+  NullLiteral: 'NullLiteral'
 };
 
 export type HbsNodeType = typeof HbsNodeTypes[keyof typeof HbsNodeTypes];
