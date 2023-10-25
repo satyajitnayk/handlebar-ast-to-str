@@ -1,36 +1,41 @@
 import Handlebars from 'handlebars';
+import {HbsNodeTypes} from "./constants";
+import {ModificationOptions} from "./interfaces";
 
 /**
  * @description
  * converts Handlebar AST back to plain template string
  * @param node
+ * @param options
  */
-
-export function convertAstToString(node: hbs.AST.Node | null): string {
+export function convertAstToString(
+  node: hbs.AST.Node | null,
+  options?: ModificationOptions
+): string {
   const fn = convertAstToString;
   if (!node) return '';
 
   let output = '';
 
   switch (node.type) {
-    case 'Program':
+    case HbsNodeTypes.Program:
       output = (node as hbs.AST.Program).body
         .map((n) => {
-          if (n.type === 'CommentStatement') {
+          if (n.type === HbsNodeTypes.CommentStatement) {
             // @ts-ignore
             return `{{!--${n.value}--}}`;
           }
-          return fn(n);
+          return fn(n, options);
         })
         .join('');
       break;
 
-    case 'BlockStatement':
+    case HbsNodeTypes.BlockStatement:
       const blockNode = node as hbs.AST.BlockStatement;
       const blockPath = blockNode.path.original;
-      const blockProgram = fn(blockNode.program);
+      const blockProgram = fn(blockNode.program, options);
       const blockParams = blockNode.params
-        .map(fn)
+        .map(d => fn(d, options))
         .join(' ');
 
       const blockParamsString = (
@@ -43,18 +48,17 @@ export function convertAstToString(node: hbs.AST.Node | null): string {
       let nextInverse: hbs.AST.Program | null = blockNode.inverse;
 
       while (nextInverse) {
-        if (nextInverse.body[0]?.type === 'BlockStatement') {
+        if (nextInverse.body[0]?.type === HbsNodeTypes.BlockStatement) {
           const nextBlock = nextInverse.body[0] as hbs.AST.BlockStatement;
           const nextBlockPath = nextBlock.path.original;
 
-          inverseProgram += `{{else ${nextBlockPath} ${nextBlock.params.map(fn).join(' ')}}}${fn(nextBlock.program)}`;
+          inverseProgram += `{{else ${nextBlockPath} ${nextBlock.params.map(d => fn(d, options)).join(' ')}}}${fn(nextBlock.program, options)}`;
           nextInverse = nextBlock.inverse;
         } else {
-          inverseProgram += `{{else}}${fn(nextInverse)}`;
+          inverseProgram += `{{else}}${fn(nextInverse, options)}`;
           nextInverse = null;
         }
       }
-
 
       output = `{{#${blockPath}${
         blockParams ? ' ' + blockParams : ''
@@ -66,11 +70,11 @@ export function convertAstToString(node: hbs.AST.Node | null): string {
 
       break;
 
-    case 'MustacheStatement':
+    case HbsNodeTypes.MustacheStatement:
       const mustacheNode = node as hbs.AST.MustacheStatement;
       const openingBraces = mustacheNode.escaped ? '{{' : '{{{';
       const closingBraces = mustacheNode.escaped ? '}}' : '}}}';
-      const mustacheParams = mustacheNode.params.map(fn).join(' ');
+      const mustacheParams = mustacheNode.params.map(d => fn(d, options)).join(' ');
 
       // @ts-ignore
       let originalPath = mustacheNode.path.original;
@@ -88,19 +92,31 @@ export function convertAstToString(node: hbs.AST.Node | null): string {
       }${closingBraces}`;
       break;
 
-    case 'ContentStatement':
+    case HbsNodeTypes.ContentStatement:
       // @ts-ignore
       output = (node as hbs.AST.ContentStatement).original;
       break;
 
-    case 'PathExpression':
+    case HbsNodeTypes.PathExpression:
       output = (node as hbs.AST.PathExpression).original;
       break;
 
-    case 'SubExpression':
+    case HbsNodeTypes.SubExpression:
       const subExpNode = node as hbs.AST.SubExpression;
       const subParams = subExpNode.params
-        .map(fn)
+        .map((param, index) => {
+          if (
+            options?.nodeType == HbsNodeTypes.SubExpression
+            && options.helper === subExpNode.path.original
+            && options?.paramIndex
+            && options.paramIndex - 1 === index
+            && options?.modifiers
+          ) {
+            return options.modifiers.map(modify => modify(fn(param, options)));
+          } else {
+            return fn(param, options);
+          }
+        })
         .join(' ');
       const hashPairs = (subExpNode.hash?.pairs ?? [])
         .map((hashPair: any) => {
@@ -115,14 +131,14 @@ export function convertAstToString(node: hbs.AST.Node | null): string {
       })`;
       break;
 
-    case 'PartialStatement':
-    case 'PartialBlockStatement':
+    case HbsNodeTypes.PartialStatement:
+    case HbsNodeTypes.PartialBlockStatement:
       const partialNode = node as
         | hbs.AST.PartialStatement
         | hbs.AST.PartialBlockStatement;
       if ('name' in partialNode && partialNode.name.type === 'SubExpression') {
-        output = `{{> (${fn(partialNode.name.path)}`;
-        const params = partialNode.name.params.map(fn);
+        output = `{{> (${fn(partialNode.name.path, options)}`;
+        const params = partialNode.name.params.map(d => fn(d, options));
         if (params.length > 0) {
           output += ' ' + params.join(' ');
         }
@@ -134,29 +150,29 @@ export function convertAstToString(node: hbs.AST.Node | null): string {
 
       // Continue handling params and hash as before
       if (partialNode.params && partialNode.params.length > 0) {
-        const params = partialNode.params.map(fn).join(' ');
+        const params = partialNode.params.map(d => fn(d, options)).join(' ');
         output += ` ${params}`;
       }
       if (partialNode.hash && partialNode.hash.pairs.length > 0) {
         const hash = partialNode.hash.pairs
-          .map((p) => `${p.key}=${fn(p.value)}`)
+          .map((p) => `${p.key}=${fn(p.value, options)}`)
           .join(' ');
         output += ` ${hash}`;
       }
       output += ' }}';
       break;
 
-    case 'StringLiteral':
+    case HbsNodeTypes.StringLiteral:
       // @ts-ignore
       output = `'${node.value}'`;
       break;
 
-    case 'NumberLiteral':
+    case HbsNodeTypes.NumberLiteral:
       // @ts-ignore
       output = `${node.value}`;
       break;
 
-    case 'BooleanLiteral':
+    case HbsNodeTypes.BooleanLiteral:
       // @ts-ignore
       output = `${node.value}`;
       break;
