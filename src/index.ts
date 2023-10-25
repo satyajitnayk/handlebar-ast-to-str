@@ -43,7 +43,6 @@ export function convertAstToString(
           }
           return fn(d, options);
         })
-        // .map(d => d ? fn(d, options) : 'undefined')
         .join(' ');
 
       const blockParamsString = (
@@ -107,12 +106,21 @@ export function convertAstToString(
 
       // @ts-ignore
       let originalPath = mustacheNode.path.original;
-      const excludeRegex = new RegExp(
-        '@(root|first|index|key|last|level)|\\.{1,2}\\/|\\.|_',
-        'g'
-      );
-      // reserved keyword of handlebar
-      if (/[\W_]/.test(originalPath) && !excludeRegex.test(originalPath)) {
+      //@ts-ignore
+      const isPathDataVariable = mustacheNode.path?.data;
+      //@ts-ignore
+      const pathParts = mustacheNode.path?.parts ?? [];
+      //@ts-ignore
+      const pathDepth = mustacheNode.path?.depth ?? 0;
+
+      // check if originalPath contains special characters, is not a data variable (path.data=true),
+      // consists of a single part ["part"], and has no path depth (../)
+      if (
+        /[!"#%&'()*+,.\/;<=>@^`{|}~]/.test(originalPath)
+        && !isPathDataVariable
+        && (pathParts.length == 1)
+        && (pathDepth == 0)
+      ) {
         // Contains special characters
         originalPath = `[${originalPath}]`;
       }
@@ -155,8 +163,16 @@ export function convertAstToString(
         })
         .join(' ');
       const hashPairs = (subExpNode.hash?.pairs ?? [])
-        .map((hashPair: any) => {
-          return `${hashPair.key}='${hashPair.value.value}'`;
+        .map((pair: any) => {
+          let hashValue = '';
+          if (pair.value.type === HbsNodeTypes.UndefinedLiteral) {
+            hashValue = 'undefined';
+          } else if (pair.value.type === HbsNodeTypes.NullLiteral) {
+            hashValue = 'null';
+          } else {
+            hashValue = fn(pair.value, options);
+          }
+          return `${pair.key}=${hashValue}`;
         })
         .join(' ');
 
