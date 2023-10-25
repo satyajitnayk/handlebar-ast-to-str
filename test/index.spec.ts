@@ -7,6 +7,7 @@ import {
   swapQuotes,
 } from './index.spec-utils';
 import {HbsNodeTypes} from '../src/constants';
+import {ModificationOptions} from "../src/interfaces";
 
 describe('convertASTToTemplateString - with out any modification options', () => {
   const templates = [
@@ -415,7 +416,7 @@ describe('convertASTToTemplateString - with out any modification options', () =>
     `{{#each (sort (filter items (id gt 123)))}}{{id}}|{{/each}}`,
     `{{#each (sort (sort (filter items (id gt 123))))}}{{id}}|{{/each}}`,
     `{{#each (sort (filter (sort (filter items (price lte 500))) (id gt 123)))}}{{id}}|{{/each}}`,
-    // failing tests
+
     `{{insert_link url text=(lower text)}}`,
     `{{#with person undefined}}{{name}}{{/with}}`,
     `{{#with null}}{{name}}{{/with}}`,
@@ -506,16 +507,16 @@ describe('convertASTToTemplateString - with modification options', () => {
       output: `{{#each (sort (filter (sort (filter items '(price lte 500)')) '(id gt 123)'))}}{{id}}|{{/each}}`,
     },
   ];
-  const options = {
+  const options: ModificationOptions = {
     helper: 'filter',
-    nodeType: HbsNodeTypes.SubExpression,
-    paramIndex: 2,
+    paramType: HbsNodeTypes.SubExpression,
+    paramPosition: 2,
     modifiers: [(d: string) => `'${d}'`],
   };
 
   for (const template of templates) {
     it(`template: ${template.input} - modify ${formatNumberSuffix(
-      options.paramIndex,
+      options?.paramPosition ?? 0,
     )} param of ${options.helper} helper`, () => {
       expect(
         postprocess(

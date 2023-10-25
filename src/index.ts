@@ -142,10 +142,10 @@ export function convertAstToString(
           }
 
           if (
-            options?.nodeType == HbsNodeTypes.SubExpression
+            options?.paramType == HbsNodeTypes.SubExpression
             && options.helper === subExpNode.path.original
-            && options?.paramIndex
-            && options.paramIndex - 1 === index
+            && options?.paramPosition
+            && options.paramPosition - 1 === index
             && options?.modifiers
           ) {
             return options.modifiers.map(modify => modify(fn(param, options)));

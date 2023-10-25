@@ -1,6 +1,6 @@
 {
   "name": "hbs-ast-to-str",
-  "version": "1.0.0",
+  "version": "1.0.6",
   "description": "Converts Handlebars Abstract Syntax Tree (AST) back to template string.",
   "main": "dist/cjs/index.js",
   "files": [
