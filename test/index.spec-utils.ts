@@ -10,6 +10,17 @@ export function preprocess(content: string): string {
 }
 
 /**
+ * Swap double quotes (") with single quotes (') within {{}} or {{{{}}}} only.
+ * @param content - The input string where quotes need to be swapped.
+ * @return The modified string with quotes swapped within {{}} or {{{{}}}}.
+ */
+export function swapQuotes(content: string): string {
+  return content.replace(/{{([^{}]+)}}|{{{{([^{}]+)}}}}/g, (match) => {
+    return match.replace(/"/g, "'");
+  });
+}
+
+/**
  * Postprocesses the content by reverting the modified format "(X (" back to
  * double opening parentheses "((" after further processing.
  */

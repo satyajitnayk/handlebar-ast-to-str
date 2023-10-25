@@ -1,18 +1,16 @@
-import { HbsNodeType } from './constants';
+import {HbsNodeType} from "./constants";
 
 /**
  * Interface for specifying modification options.
  *
  * @property {string} [helper] - Indicates if the target is a parameter.
- * @property {HbsNodeType} [nodeType] - Specifies the node type of the target.
- * @property {number} [paramIndex] - Specifies the index of the parameter.
- * @property {Function} [modify] - A function to modify the target.
+ * @property {HbsNodeType} [paramType] - Specifies the param type of the target.
+ * @property {number} [paramPosition] - Specifies the position of the parameter.
+ * @property {Function[]} [modifiers] - Array of functions to modify the target.
  */
-
 export interface ModificationOptions {
-	helper?: string;
-	paramType?: HbsNodeType;
-	paramIndex?: number;
-	// hashIndex?: number;
-	modifiers?: Function[];
+  helper?: string;
+  paramType?: HbsNodeType;
+  paramPosition?: number;
+  modifiers?: Function[];
 }
