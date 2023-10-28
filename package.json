@@ -27,7 +27,9 @@
     "handlebars",
     "mustache",
     "template",
-    "ast"
+    "ast",
+    "template-string",
+    "conversion"
   ],
   "devDependencies": {
     "@types/jest": "^29.5.6",
