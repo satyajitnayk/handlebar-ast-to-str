@@ -20,9 +20,6 @@
     "type": "git",
     "url": "https://github.com/satyajitnayk/handlebar-ast-to-str"
   },
-  "dependencies": {
-    "handlebars": "^4.7.8"
-  },
   "keywords": [
     "handlebars",
     "mustache",
@@ -32,6 +29,7 @@
     "conversion"
   ],
   "devDependencies": {
+    "handlebars": "^4.7.8",
     "@types/jest": "^29.5.6",
     "jest": "^29.7.0",
     "ts-jest": "^29.1.1",
