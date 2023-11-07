@@ -2,7 +2,7 @@
 
 ## Description
 
-This project converts a Converts Handlebars Abstract Syntax Tree (AST) back to template string with processing(
+This project converts Handlebars Abstract Syntax Tree (AST) back to template string with processing(
 optional).
 
 ## Installation
